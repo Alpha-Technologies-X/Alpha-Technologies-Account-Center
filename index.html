@@ -80,46 +80,45 @@
     <button class="logout" onclick="logout()">Sign out</button>
   </div>
 
-  <script>
-    const auth0 = new auth0SpaJs.Auth0Client({
+<script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+
+<script>
+(async () => {
+  const auth0 = await createAuth0Client({
       domain: "https://alphatechnologies.us.auth0.com",
       clientId: "q5h7SCxVv8kK5TPLDHzBMkcFkjatro1i",
-      authorizationParams: {
-        redirect_uri: window.location.origin + "/account.html"
+    authorizationParams: {
+      redirect_uri: window.location.origin
+    }
+  });
+
+  if (window.location.search.includes("code=")) {
+    await auth0.handleRedirectCallback();
+    window.history.replaceState({}, document.title, "/");
+  }
+
+  const loggedIn = await auth0.isAuthenticated();
+
+  if (!loggedIn) {
+    await auth0.loginWithRedirect();
+    return;
+  }
+
+  const user = await auth0.getUser();
+
+  document.getElementById("avatar").src = user.picture;
+  document.getElementById("name").textContent = user.name || "Alpha User";
+  document.getElementById("email").textContent = user.email;
+  document.getElementById("account").style.display = "block";
+
+  window.logout = async () => {
+    await auth0.logout({
+      logoutParams: {
+        returnTo: window.location.origin
       }
     });
-
-    async function requireAuth() {
-      if (window.location.search.includes("code=")) {
-        await auth0.handleRedirectCallback();
-        window.history.replaceState({}, document.title, "/account.html");
-      }
-
-      const isAuthenticated = await auth0.isAuthenticated();
-
-      if (!isAuthenticated) {
-        await auth0.loginWithRedirect();
-        return;
-      }
-
-      const user = await auth0.getUser();
-
-      document.getElementById("avatar").src = user.picture;
-      document.getElementById("name").textContent = user.name || "Alpha User";
-      document.getElementById("email").textContent = user.email;
-
-      document.getElementById("account").style.display = "block";
-    }
-
-    async function logout() {
-      await auth0.logout({
-        logoutParams: {
-          returnTo: window.location.origin
-        }
-      });
-    }
-
-    requireAuth();
-  </script>
+  };
+})();
+</script>
 </body>
 </html>
