@@ -1,41 +1,124 @@
-<script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alpha Account</title>
 
-<script>
-(async () => {
-  const auth0 = await createAuth0Client({
-    domain: "alphatechnologies.us.auth0.com",  // ✅ NO https://
-    clientId: "q5h7SCxVv8kK5TPLDHzBMkcFkjatro1i",
-    authorizationParams: {
-      redirect_uri: window.location.origin
+  <!-- Auth0 SPA SDK (include ONCE) -->
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b0b0b;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
-  });
 
-  if (window.location.search.includes("code=")) {
-    await auth0.handleRedirectCallback();
-    window.history.replaceState({}, document.title, "/");
-  }
+    .card {
+      background: #ffffff;
+      color: #000000;
+      width: 360px;
+      border-radius: 14px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
 
-  const loggedIn = await auth0.isAuthenticated();
+    img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin-bottom: 12px;
+    }
 
-  if (!loggedIn) {
-    await auth0.loginWithRedirect();
-    return;
-  }
+    h1 {
+      font-size: 20px;
+      margin: 8px 0;
+    }
 
-  const user = await auth0.getUser();
+    p {
+      font-size: 14px;
+      color: #444;
+      margin: 4px 0 16px;
+    }
 
-  document.getElementById("avatar").src = user.picture;
-  document.getElementById("name").textContent = user.name || "Alpha User";
-  document.getElementById("email").textContent = user.email;
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 15px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
 
-  document.getElementById("account").style.display = "block";
+    .logout {
+      background: #e11d48;
+      color: white;
+    }
 
-  window.logout = async () => {
-    await auth0.logout({
-      logoutParams: {
-        returnTo: window.location.origin
+    .service {
+      background: #0a2cff;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card" id="account" style="display:none;">
+    <img id="avatar" alt="Profile picture" />
+    <h1 id="name"></h1>
+    <p id="email"></p>
+
+    <button class="service">Alpha Mail (Coming Soon)</button>
+    <button class="service">Alpha Drive (Coming Soon)</button>
+
+    <button class="logout" onclick="logout()">Sign out</button>
+  </div>
+
+  <script>
+    (async () => {
+      const auth0 = await createAuth0Client({
+        domain: "alphatechnologies.us.auth0.com",
+        clientId: "q5h7SCxVv8kK5TPLDHzBMkcFkjatro1i",
+        authorizationParams: {
+          redirect_uri: window.location.origin
+        }
+      });
+
+      if (window.location.search.includes("code=")) {
+        await auth0.handleRedirectCallback();
+        window.history.replaceState({}, document.title, "/");
       }
-    });
-  };
-})();
-</script>
+
+      const isAuthenticated = await auth0.isAuthenticated();
+
+      if (!isAuthenticated) {
+        await auth0.loginWithRedirect();
+        return;
+      }
+
+      const user = await auth0.getUser();
+
+      document.getElementById("avatar").src = user.picture;
+      document.getElementById("name").textContent = user.name || "Alpha User";
+      document.getElementById("email").textContent = user.email;
+
+      document.getElementById("account").style.display = "block";
+
+      window.logout = async () => {
+        await auth0.logout({
+          logoutParams: {
+            returnTo: window.location.origin
+          }
+        });
+      };
+    })();
+  </script>
+</body>
+</html>
