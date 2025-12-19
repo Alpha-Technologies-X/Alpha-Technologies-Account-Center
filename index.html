@@ -65,54 +65,51 @@
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
 
   <!-- App Logic -->
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const app = document.getElementById("app");
+ <script type="module">
+  import createAuth0Client from "https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js";
 
-      try {
-        const auth0 = await createAuth0Client({
-          domain: "alphatechnologies.auth0.com",
-          clientId: "q5h7SCxVv8kK5TPLDHzBMkcFkjatro1i",
-          authorizationParams: {
-            redirect_uri: window.location.origin
-          }
-        });
+  const app = document.getElementById("app");
 
-        if (window.location.search.includes("code=")) {
-          await auth0.handleRedirectCallback();
-          window.history.replaceState({}, document.title, "/");
-        }
-
-        const isAuth = await auth0.isAuthenticated();
-
-        if (!isAuth) {
-          app.innerHTML = `
-            <h2>Alpha Account</h2>
-            <button class="login" id="login">Log in</button>
-          `;
-          document.getElementById("login").onclick = () =>
-            auth0.loginWithRedirect();
-          return;
-        }
-
-        const user = await auth0.getUser();
-        app.innerHTML = `
-          <img src="${user.picture}">
-          <h3>${user.name}</h3>
-          <p>${user.email}</p>
-          <button class="logout" id="logout">Log out</button>
-        `;
-        document.getElementById("logout").onclick = () =>
-          auth0.logout({ logoutParams: { returnTo: window.location.origin } });
-
-      } catch (err) {
-        app.innerHTML = `
-          <h3>Error</h3>
-          <pre style="font-size:12px;white-space:pre-wrap">${err}</pre>
-        `;
+  async function main() {
+    const auth0 = await createAuth0Client({
+      domain: "alphatechnologies.us.auth0.com",
+      clientId: "q5h7SCxVv8kK5TPLDHzBMkcFkjatro1i",
+      authorizationParams: {
+        redirect_uri: window.location.origin
       }
     });
-  </script>
+
+    if (window.location.search.includes("code=")) {
+      await auth0.handleRedirectCallback();
+      window.history.replaceState({}, document.title, "/");
+    }
+
+    const isAuth = await auth0.isAuthenticated();
+
+    if (!isAuth) {
+      app.innerHTML = `
+        <h2>Alpha Account</h2>
+        <button id="login">Log in</button>
+      `;
+      document.getElementById("login").onclick = () =>
+        auth0.loginWithRedirect();
+      return;
+    }
+
+    const user = await auth0.getUser();
+    app.innerHTML = `
+      <img src="${user.picture}">
+      <h3>${user.name}</h3>
+      <p>${user.email}</p>
+      <button id="logout">Log out</button>
+    `;
+    document.getElementById("logout").onclick = () =>
+      auth0.logout({ logoutParams: { returnTo: window.location.origin } });
+  }
+
+  main();
+</script>
+
 
 </body>
 </html>
