@@ -61,54 +61,66 @@
     <p>Loading…</p>
   </div>
 
-  <!-- Auth0 SDK -->
-  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
-
-  <!-- App Logic -->
  <script type="module">
   import createAuth0Client from "https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js";
 
-  const app = document.getElementById("app");
+  window.addEventListener("load", async () => {
+    const app = document.getElementById("app");
 
-  async function main() {
-    const auth0 = await createAuth0Client({
-      domain: "alphatechnologies.us.auth0.com",
-      clientId: "q5h7SCxVv8kK5TPLDHzBMkcFkjatro1i",
-      authorizationParams: {
-        redirect_uri: window.location.origin
+    try {
+      const auth0 = await createAuth0Client({
+        domain: "alphatechnologies.us.auth0.com",
+        clientId: "q5h7SCxVv8kK5TPLDHzBMkcFkjatro1i",
+        authorizationParams: {
+          redirect_uri: window.location.origin
+        },
+        cacheLocation: "localstorage"
+      });
+
+      // Handle redirect
+      if (window.location.search.includes("code=")) {
+        app.innerHTML = "<p>Finishing login…</p>";
+        await auth0.handleRedirectCallback();
+        window.history.replaceState({}, document.title, "/");
       }
-    });
 
-    if (window.location.search.includes("code=")) {
-      await auth0.handleRedirectCallback();
-      window.history.replaceState({}, document.title, "/");
-    }
+      const isAuth = await auth0.isAuthenticated();
 
-    const isAuth = await auth0.isAuthenticated();
+      if (!isAuth) {
+        app.innerHTML = `
+          <h2>Alpha Account</h2>
+          <button id="login">Log in</button>
+        `;
+        document.getElementById("login").onclick = () =>
+          auth0.loginWithRedirect();
+        return;
+      }
 
-    if (!isAuth) {
+      const user = await auth0.getUser();
       app.innerHTML = `
-        <h2>Alpha Account</h2>
-        <button id="login">Log in</button>
+        <img src="${user.picture}">
+        <h3>${user.name}</h3>
+        <p>${user.email}</p>
+        <button id="logout">Log out</button>
       `;
-      document.getElementById("login").onclick = () =>
-        auth0.loginWithRedirect();
-      return;
+
+      document.getElementById("logout").onclick = () =>
+        auth0.logout({
+          logoutParams: { returnTo: window.location.origin }
+        });
+
+    } catch (err) {
+      app.innerHTML = `
+        <h3>Auth Error</h3>
+        <pre style="text-align:left;font-size:12px;">
+${err.message}
+        </pre>
+      `;
+      console.error(err);
     }
-
-    const user = await auth0.getUser();
-    app.innerHTML = `
-      <img src="${user.picture}">
-      <h3>${user.name}</h3>
-      <p>${user.email}</p>
-      <button id="logout">Log out</button>
-    `;
-    document.getElementById("logout").onclick = () =>
-      auth0.logout({ logoutParams: { returnTo: window.location.origin } });
-  }
-
-  main();
+  });
 </script>
+
 
 
 </body>
